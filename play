@@ -1,0 +1,58 @@
+#!/bin/sh
+
+playlistfile="${TMPDIR}playlist"
+echo Playlist: $playlistfile
+
+videofiles=$(du -a . | grep -iE "mp4$|mkv$")
+[ "$2" != "" ] && videofiles=$(printf "%s\n" "$videofiles" | grep -i "$2")
+# printf "%s\n" "$videofiles" 
+NOF=$(printf "%s\n" "$videofiles" | wc -l | sed 's/^ *//')
+# printf "%s: %s\n" "Number of files" "$NOF"
+echo
+printf "%s: \n" "Number of files" 
+figlet "$NOF"
+
+shuf () {
+	perl -MList::Util=shuffle -e 'print shuffle(<>);' "$@"
+}
+
+if [ "$1" = "size" ]
+then
+	    # sort by size
+	    printf "%s\n" "$videofiles" | sort -n -r | sed 's/^[0-9]*\t\.\///' | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
+
+elif [ "$1" = "rsize" ]
+then
+	    # sort by size
+	    printf "%s\n" "$videofiles" | sort -n | sed 's/^[0-9]*\t\.\///' | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
+
+elif [ "$1" = "shuf" ]
+then
+	    # shuffle the list
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | sort -R | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
+
+elif [ "$1" = "rshuf" ]
+then
+	    # shuffle the list
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | shuf | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
+
+elif [ "$1" = "date" ]
+then
+	    # sort by date
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | while read -r name; do printf "%s %s\n" $(date -r "$name" "+%s") "$name"; done | sort -r | sed 's/^[0-9]* //' | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
+
+elif [ "$1" = "rdate" ]
+then
+	    # sort by date
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | while read -r name; do printf "%s %s\n" $(date -r "$name" "+%s") "$name"; done | sort | sed 's/^[0-9]* //' | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
+
+elif [ "$1" = "" ]
+then
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile" 
+
+elif [ "$1" = "name" ]
+then
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | sort | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile" 
+fi
+
+mpv --playlist="$playlistfile"
