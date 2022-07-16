@@ -5,9 +5,7 @@ echo Playlist: $playlistfile
 
 videofiles=$(du -a . | grep -iE "mp4$|mkv$")
 [ "$2" != "" ] && videofiles=$(printf "%s\n" "$videofiles" | grep -i "$2")
-# printf "%s\n" "$videofiles" 
 NOF=$(printf "%s\n" "$videofiles" | wc -l | sed 's/^ *//')
-# printf "%s: %s\n" "Number of files" "$NOF"
 echo
 printf "%s: \n" "Number of files" 
 figlet "$NOF"
