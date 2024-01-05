@@ -1,56 +1,87 @@
-#!/bin/sh
+#!/bin/bash
 
 playlistfile="${TMPDIR}playlist"
 echo Playlist: $playlistfile
 
-videofiles=$(du -a . | grep -iE "mp4$|mkv$")
-[ "$2" != "" ] && videofiles=$(printf "%s\n" "$videofiles" | grep -i "$2")
+number_of_args=$#
+
+videodir="."
+videofiles=$(du -L -a $videodir | grep -iE "mp4$|mkv$")
+[ -n "$2" ] && videofiles=$(printf "%s\n" "$videofiles" | grep -i "$2")
 NOF=$(printf "%s\n" "$videofiles" | wc -l | sed 's/^ *//')
+# printf "%s: %s\n" "Number of files" "$NOF"
 echo
-printf "%s: \n" "Number of files" 
+printf "%s: \n" "Number of files"
 figlet "$NOF"
+
+
+prependPWD1 () {
+	xargs -I {} printf "%s/%s\n" "$(pwd)" {}
+}
+prependPWD2 () {
+	while read name; do echo $(pwd)\/$name; done
+}
+
+prependPWD () {
+	prependPWD1 $@
+}
+[ $(printf "%s" "$videofiles" | grep \' | wc -l | sed 's/^ *//') -ne 0 ] &&
+	prependPWD () {
+		prependPWD2 $@
+	}
+
+
+echo $prependPWD
+
 
 shuf () {
 	perl -MList::Util=shuffle -e 'print shuffle(<>);' "$@"
 }
 
-if [ "$1" = "size" ]
-then
+video_duration () {
+	ffprobe -v error -select_streams a:0 -show_entries stream=duration -of default=noprint_wrappers=1:nokey=1 "$@" | awk 'NR==1{print int($1)}'
+}
+
+case "$1" in
+    "size")
 	    # sort by size
-	    printf "%s\n" "$videofiles" | sort -n -r | sed 's/^[0-9]*\t\.\///' | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
-
-elif [ "$1" = "rsize" ]
-then
+		printf "%s\n" "$videofiles" | sort -n -r | sed 's/^[0-9]*\t\.\///' | prependPWD | tee "$playlistfile" > /dev/null
+        ;;
+    "rsize")
 	    # sort by size
-	    printf "%s\n" "$videofiles" | sort -n | sed 's/^[0-9]*\t\.\///' | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
-
-elif [ "$1" = "shuf" ]
-then
+	    printf "%s\n" "$videofiles" | sort -n | sed 's/^[0-9]*\t\.\///' | prependPWD | tee "$playlistfile" > /dev/null
+        ;;
+    "shuf")
 	    # shuffle the list
-	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | sort -R | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
-
-elif [ "$1" = "rshuf" ]
-then
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | sort -R | prependPWD | tee "$playlistfile" > /dev/null
+        ;;
+    "rshuf")
 	    # shuffle the list
-	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | shuf | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
-
-elif [ "$1" = "date" ]
-then
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | shuf | prependPWD | tee "$playlistfile" > /dev/null
+        ;;
+    "date")
 	    # sort by date
-	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | while read -r name; do printf "%s %s\n" $(date -r "$name" "+%s") "$name"; done | sort -r | sed 's/^[0-9]* //' | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
-
-elif [ "$1" = "rdate" ]
-then
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | while read -r name; do printf "%s %s\n" $(date -r "$name" "+%s") "$name"; done | sort -r -n | sed 's/^[0-9]* //' | prependPWD | tee "$playlistfile" > /dev/null
+        ;;
+    "rdate")
 	    # sort by date
-	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | while read -r name; do printf "%s %s\n" $(date -r "$name" "+%s") "$name"; done | sort | sed 's/^[0-9]* //' | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile"
-
-elif [ "$1" = "" ]
-then
-	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile" 
-
-elif [ "$1" = "name" ]
-then
-	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | sort | xargs -I {} printf "%s/%s\n" "$(pwd)" {} > "$playlistfile" 
-fi
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | while read -r name; do printf "%s %s\n" $(date -r "$name" "+%s") "$name"; done | sort -n | sed 's/^[0-9]* //' | prependPWD | tee "$playlistfile" > /dev/null
+        ;;
+    "name")
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | sort | prependPWD | tee "$playlistfile" > /dev/null
+        ;;
+    "rname")
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | sort -r | prependPWD | tee "$playlistfile" > /dev/null
+        ;;
+	"duration")
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | while read -r name; do printf "%s %s\n" $(video_duration "$name") "$name"; done | sort -r -n | sed 's/^[0-9]* //' | prependPWD | tee "$playlistfile" > /dev/null
+		;;
+	"rduration")
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | while read -r name; do printf "%s %s\n" $(video_duration "$name") "$name"; done | sort -n | sed 's/^[0-9]* //' | prependPWD | tee "$playlistfile" > /dev/null
+		;;
+    "")
+	    printf "%s\n" "$videofiles" | sed 's/^[0-9]*\t\.\///' | prependPWD | tee "$playlistfile" > /dev/null
+        ;;
+esac
 
 mpv --playlist="$playlistfile"
