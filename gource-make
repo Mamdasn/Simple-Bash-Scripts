@@ -12,9 +12,12 @@ repository_address="$1"
 video_filename=$(basename "$repository_address").mp4
 video_address="$(dirname "$repository_address")/$video_filename"
 
+# profile picture
+[ -e "pp.jpg" ] && user_image_option="--default-user-image pp.jpg" || user_image_option=""
+
 echo "Parent directory: $(dirname "$repository_address")"
 echo "Video address: $video_address"
 echo "Repository address: $repository_address"
 
 # Generate the video visualization
-gource --seconds-per-day 0.5 --auto-skip-seconds 5 "$repository_address" -1280x720 --output-ppm-stream - | ffmpeg -hide_banner -loglevel warning -y -r 60 -f image2pipe -vcodec ppm -i - -vcodec libx264 -preset ultrafast -pix_fmt yuv420p -crf 1 -threads 0 -bf 0 "$video_address"
+gource --filename-time 30 --highlight-dirs --high-dpi $user_image_option --key --seconds-per-day 0.5 --auto-skip-seconds 5 "$repository_address" -1280x720 --output-ppm-stream - | ffmpeg -hide_banner -loglevel warning -y -r 60 -f image2pipe -vcodec ppm -i - -vcodec libx264 -preset ultrafast -pix_fmt yuv420p -crf 1 -threads 0 -bf 0 "$video_address"
