@@ -14,6 +14,7 @@ video_address="$(dirname "$repository_address")/$video_filename"
 
 # profile picture
 [ -e "pp.jpg" ] && user_image_option="--default-user-image pp.jpg" || user_image_option=""
+[ -e "${HOME}/Pictures/pp.jpg" ] && user_image_option="--default-user-image ${HOME}/Pictures/pp.jpg" || user_image_option=""
 
 echo "Parent directory: $(dirname "$repository_address")"
 echo "Video address: $video_address"
