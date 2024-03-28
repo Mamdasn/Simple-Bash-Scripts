@@ -2,7 +2,7 @@
 
 # Define a function to display the help text
 print_help() {
-cat << EOF
+	cat <<EOF
 Usage: ${0} [options]
 
 This script helps playing videos/musics using mpv in an arbitrary order.
@@ -19,145 +19,144 @@ EOF
 
 # Manage options using getopts
 while getopts "o:f:s:a:h" opt; do
-  case $opt in
-    o)
-      order=$OPTARG
-      ;;
-    f)
-      filter=$OPTARG
-      ;;
-    s)
-      sshconfig=$OPTARG
-      ;;
-    a)
-      address=$OPTARG
-      ;;
-    h | \?)
-      print_help
-      exit 0
-      ;;
-  esac
+	case $opt in
+	o)
+		order=$OPTARG
+		;;
+	f)
+		filter=$OPTARG
+		;;
+	s)
+		sshconfig=$OPTARG
+		;;
+	a)
+		address=$OPTARG
+		;;
+	h | \?)
+		print_help
+		exit 0
+		;;
+	esac
 done
 
-[ -z "$address" ] && [ -n "$sshconfig" ] && echo address -a arg is mandatory if the server -s arg is set. && print_help && exit 1
+[ -z "$address" ] && [ -n "$sshconfig" ] &&
+	echo address -a arg is mandatory if the server -s arg is set. &&
+	print_help && exit 1
 
 [ -z "$address" ] && address="."
-
 
 playlistfile="${TMPDIR}playlist"
 echo Playlist: $playlistfile
 
-[ -z "$sshconfig" ] && 
+[ -z "$sshconfig" ] &&
 	echo Playing content on the local drive &&
 	videofiles=$(du -L -a $address | grep -iE "m4v$|mp4$|mkv$|mp3$")
-[ -n "$sshconfig" ] && 
+[ -n "$sshconfig" ] &&
 	echo Playing content through ssh on an external drive &&
 	videofiles=$(ssh $sshconfig "du -L -a $address" | grep -iE "m4v$|mp4$|mkv$|mp3$")
 
 [ -n "$filter" ] && videofiles=$(printf "%s\n" "$videofiles" | grep -i "$filter")
 
-[ -z "$videofiles" ] && 
+[ -z "$videofiles" ] &&
 	echo No content found. &&
 	exit 0
-	
+
 NOF=$(printf "%s\n" "$videofiles" | wc -l | sed 's/^ *//')
 echo
 printf "%s: \n" "Number of files"
 figlet "$NOF"
 
-
 prependPWD() {
-    while IFS= read -r line; do
-        if [[ $line == /* ]]; then
-		[ -n "$sshconfig" ] && 
-			printf "sftp://%s:%s\n" "$sshconfig" "$line" ||
-			printf "%s\n" "$line"
-        else
-		[ -n "$sshconfig" ] && 
-			printf "sftp://%s:%s/%s\n" "$sshconfig" "$(pwd)" "$line" ||
-			printf "%s/%s\n" "$(pwd)" "$line"
-        fi
-    done
+	while IFS= read -r line; do
+		if [[ $line == /* ]]; then
+			[ -n "$sshconfig" ] &&
+				printf "sftp://%s:%s\n" "$sshconfig" "$line" ||
+				printf "%s\n" "$line"
+		else
+			[ -n "$sshconfig" ] &&
+				printf "sftp://%s:%s/%s\n" "$sshconfig" "$(pwd)" "$line" ||
+				printf "%s/%s\n" "$(pwd)" "$line"
+		fi
+	done
 }
 
 removeNumberAppendix() {
-    while IFS= read -r line; do
-	printf "%s\n" "$line" | sed 's/^[0-9]*\t//' | sed 's/^\.\///' 
-    done
+	while IFS= read -r line; do
+		printf "%s\n" "$line" | sed 's/^[0-9]*\t//' | sed 's/^\.\///'
+	done
 }
 
 addDateAsAppendix() {
-    [ -n "$sshconfig" ] && 
-	    ssh "$sshconfig" "while IFS= read -r line; do printf \"%s\t%s\n\" \$(date -r \"\$line\" '+%s') \"\$line\"; done" ||
-    		while IFS= read -r line; do
+	[ -n "$sshconfig" ] &&
+		ssh "$sshconfig" "while IFS= read -r line; do printf \"%s\t%s\n\" \$(date -r \"\$line\" '+%s') \"\$line\"; done" ||
+		while IFS= read -r line; do
 			printf "%s\t%s\n" $(date -r "$line" "+%s") "$line"
-    		done
+		done
 }
 
-shuf () {
+shuf() {
 	perl -MList::Util=shuffle -e 'print shuffle(<>);' "$@"
 }
 
-
-video_duration () {
+video_duration() {
 	ffprobe -v error -select_streams a:0 -show_entries stream=duration -of default=noprint_wrappers=1:nokey=1 "$@" | awk 'NR==1{print int($1)}'
 }
 
 addDurationAsAppendix() {
-    [ -n "$sshconfig" ] && 
-	    ssh "$sshconfig" "while IFS= read -r line; do video_duration () {ffprobe -v error -select_streams a:0 -show_entries stream=duration -of default=noprint_wrappers=1:nokey=1 "\$\@" | awk 'NR==1{print int(\$1)}'}; printf \"%s\t%s\n\" \$(video_duration \"\$line\") \"\$line\"; done" ||
-    		while IFS= read -r line; do
+	[ -n "$sshconfig" ] &&
+		ssh "$sshconfig" "while IFS= read -r line; do video_duration () {ffprobe -v error -select_streams a:0 -show_entries stream=duration -of default=noprint_wrappers=1:nokey=1 "\$\@" | awk 'NR==1{print int(\$1)}'}; printf \"%s\t%s\n\" \$(video_duration \"\$line\") \"\$line\"; done" ||
+		while IFS= read -r line; do
 			printf "%s\t%s\n" $(video_duration "$line") "$line"
-    		done
+		done
 }
 case "$order" in
-    "size")
-	    # sort by size
-	    playlist=$(printf "%s\n" "$videofiles" | sort -n -r | removeNumberAppendix)
-        ;;
-    "rsize")
-	    # sort by size
-	    playlist=$(printf "%s\n" "$videofiles" | sort -n | removeNumberAppendix)
-        ;;
-    "shuf")
-	    # shuffle the list
-	    playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | sort -R) 
-        ;;
-    "rshuf")
-	    # shuffle the list
-	    playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | shuf)
-        ;;
-    "date")
-	    # sort by date
-	    playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | addDateAsAppendix | sort -r -n | removeNumberAppendix)
-        ;;
-    "rdate")
-	    # sort by date
-	    playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | addDateAsAppendix | sort -n | removeNumberAppendix) 
-        ;;
-    "name")
-	    # sort by name
-	    playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | sort) 
-        ;;
-    "rname")
-	    # sort by name
-	    playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | sort -r) 
-        ;;
-	"duration")
-	    # sort by duration
-	    playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | addDurationAsAppendix | sort -r -n | removeNumberAppendix) 
+"size")
+	# sort by size
+	playlist=$(printf "%s\n" "$videofiles" | sort -n -r | removeNumberAppendix)
 	;;
-	"rduration")
-	    # sort by duration
-	    playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | addDurationAsAppendix | sort -n | removeNumberAppendix) 
+"rsize")
+	# sort by size
+	playlist=$(printf "%s\n" "$videofiles" | sort -n | removeNumberAppendix)
 	;;
-    	"")
-	    playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix) 
-        ;;
+"shuf")
+	# shuffle the list
+	playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | sort -R)
+	;;
+"rshuf")
+	# shuffle the list
+	playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | shuf)
+	;;
+"date")
+	# sort by date
+	playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | addDateAsAppendix | sort -r -n | removeNumberAppendix)
+	;;
+"rdate")
+	# sort by date
+	playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | addDateAsAppendix | sort -n | removeNumberAppendix)
+	;;
+"name")
+	# sort by name
+	playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | sort)
+	;;
+"rname")
+	# sort by name
+	playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | sort -r)
+	;;
+"duration")
+	# sort by duration
+	playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | addDurationAsAppendix | sort -r -n | removeNumberAppendix)
+	;;
+"rduration")
+	# sort by duration
+	playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix | addDurationAsAppendix | sort -n | removeNumberAppendix)
+	;;
+"")
+	playlist=$(printf "%s\n" "$videofiles" | removeNumberAppendix)
+	;;
 esac
 
-printf "%s\n" "$playlist" | prependPWD | tee "$playlistfile" > /dev/null
+printf "%s\n" "$playlist" | prependPWD | tee "$playlistfile" >/dev/null
 
-[ -n "$sshconfig" ] && 
+[ -n "$sshconfig" ] &&
 	mpv --load-unsafe-playlists --playlist="$playlistfile" ||
 	mpv --playlist="$playlistfile"
