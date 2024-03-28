@@ -10,7 +10,7 @@ This script helps playing videos/musics using mpv in an arbitrary order.
 Options:
   -o <arg>(optional)    Set the order of the playlist, i.e shuf name date size duration.
   -f <arg>(optional)    Filter out the playlist based on the given keyword.
-  -s <arg>(optional)    Create the playlist over ssh access. The arg can be username@server, or the Host name if it is already configured in ~/.ssh/config.
+  -s <arg>(optional)    Create a playlist over ssh access. The arg is the Host name with the ssh key configured in ~/.ssh/config. 
   -a <arg>(optional)    Absolute directory address of the contents. This option should be set if an -s arg is set.
   -h          		Display this help and exit.
 
