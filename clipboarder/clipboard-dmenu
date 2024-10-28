@@ -1,0 +1,44 @@
+#!/bin/bash
+
+CLIPBOARD_PATH=${HOME}/.cache/clipboard
+
+[ ! -d "$CLIPBOARD_PATH" ] && mkdir -p "$CLIPBOARD_PATH"
+
+function charcount {
+	cat "$@" | wc -c
+}
+
+function getdate {
+	echo $(date -r $CLIPBOARD_PATH/"$@" '+%Y-%m-%d %H:%M:%S')
+}
+
+function gethowlongago {
+	DELTA=$(echo $(date +%s) - $(date --date="$(echo $@)" +%s) | bc)
+	[ $DELTA -lt 60 ] && echo $DELTA seconds && return
+	[ $DELTA -lt 3600 ] && echo $DELTA/60 | bc | xargs -i echo {} minutes && return
+	[ $DELTA -lt 86400 ] && echo $DELTA/3600 | bc | xargs -i echo {} hours && return
+	[ $DELTA -lt 604800 ] && echo $DELTA/86400 | bc | xargs -i echo {} days && return
+	[ $DELTA -lt 2592000 ] && echo $DELTA/604800 | bc | xargs -i echo {} weeks && return
+	echo $DELTA/2592000 | bc | xargs -i echo {} months && return
+}
+
+function getpreview {
+	HEAD=$(head -1 $CLIPBOARD_PATH/"$@")
+	TAIL=$(tail -1 $CLIPBOARD_PATH/"$@")
+	[ "$TAIL" = "$HEAD" ] &&
+	       	printf "%s\n" "$HEAD"||
+		printf "%s\t%s" "$HEAD" "$TAIL"
+}
+
+SELECTED_CLIPBOARD=$(ls -1 -t $CLIPBOARD_PATH | while read FN;
+do
+
+	printf "%s > %10.10s > %3s chars > \`%.150s\` \n" "$FN" "$(gethowlongago $(getdate $FN))" "$(charcount $CLIPBOARD_PATH/$FN)" "$(getpreview $FN)";
+done | dmenu -l 30)
+
+[ -z "${SELECTED_CLIPBOARD}" ] && exit 1
+
+FILEPATH_OF_CLIPBOARD=$(printf "%s\n" "$SELECTED_CLIPBOARD" | cut -d '>' -f1 |  xargs -i printf "%s\n" "$CLIPBOARD_PATH/{}")
+
+SIZE_OF_SELECTED_CLIPBOARD=$(echo "$(charcount $FILEPATH_OF_CLIPBOARD)" | cut -d ' ' -f2)
+printf "%s" "$(sed '${/^$/d;}' $FILEPATH_OF_CLIPBOARD)" | xclip -i -selection clipboard && rm $FILEPATH_OF_CLIPBOARD
