@@ -1,0 +1,29 @@
+#!/bin/sh
+
+RANGE=300
+
+dt=3
+CLIPBOARD_PATH=${HOME}/.cache/clipboard
+
+[ ! -d  $CLIPBOARD_PATH ] && mkdir -p $CLIPBOARD_PATH
+
+while true; do
+	SECS=`date +%s`;
+
+	FILENAME=$(echo ${SECS: -3} \/ $dt \% $RANGE | bc)
+	CURRENT_CLIPBOARD_FILENAME=$(printf "%02d\n" $FILENAME)
+
+	LAST_CLIPBOARD_FILENAME=$(ls -1 -t $CLIPBOARD_PATH | head -1)
+
+
+	LAST_CLIPBOARD=$(cat $CLIPBOARD_PATH/$LAST_CLIPBOARD_FILENAME)
+
+	CURRENT_CLIPBOARD=$(DISPLAY=:1 xclip -o -selection clipboard)
+
+
+	[ "$LAST_CLIPBOARD" != "$CURRENT_CLIPBOARD" ] &&
+		[ ! -z "$CURRENT_CLIPBOARD" ] &&
+			[ "$LAST_CLIPBOARD_FILENAME" != "$CURRENT_CLIPBOARD_FILENAME" ] &&
+				printf "%s\n" "$CURRENT_CLIPBOARD" | tee $CLIPBOARD_PATH/$CURRENT_CLIPBOARD_FILENAME
+	sleep $dt
+done
