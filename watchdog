@@ -1,0 +1,37 @@
+#!/bin/bash
+
+print_help() {
+	cat <<EOF
+Usage: ${0} [options]
+
+This script helps watchdogging a file or directory.
+
+Options:
+  -i <arg>(optional)    The path to watch.
+  -t <arg>(optional)    create or modified or delete or move. Default: create & modify & delete & move.
+  -h          		Display this help and exit.
+
+EOF
+}
+
+while getopts "i:t:h" opt; do
+	case $opt in
+	i)
+		DOG=$(realpath "$OPTARG")
+		;;
+	t)
+		TYPES="$OPTARG"
+		;;
+	h | \?)
+		print_help
+		exit 0
+		;;
+	esac
+done
+
+[ -z "$DOG" ] && [ ! -z "$1" ] && DOG=$(realpath "$1")
+[ -z "$DOG" ] && echo Set the path to watch as an argument && print_help && exit 1
+[ ! -e "$DOG" ] && echo Path does not exist && print_help && exit 1
+[ -z "$TYPES" ] && TYPES="create -e modify -e delete -e move"
+
+inotifywait -m -r -q -e $TYPES "$DOG"

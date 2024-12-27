@@ -8,6 +8,7 @@ I'll gradually add up to this repo scripts that I find useful.
 | man-maker              | Search through installed packages and read their manual pages.                                                  |
 | gource-make            | Make a video of the contributions made to a repository.                                                         |
 | clipboard-{save,dmenu} | Cache the clipboard and spawn a dmenu to select a specific clipboard.                                           |
+| watchdog               | Watchdog a file or directory.                                                                                   |
 
 ## Run Script at Startup
 Add the following to the cronie scheduler
