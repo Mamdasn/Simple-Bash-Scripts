@@ -1,0 +1,34 @@
+#!/bin/bash
+
+memory=$(free -h | grep Mem | awk '{print $3 "/" $2}')
+memory_percent=$(free | grep Mem | awk '{print $3 * 100 "/" $2 }' | bc)
+
+Color () {
+	[ $1 -lt 10 ] && echo "#FFFFFF" && return
+	[ $1 -lt 20 ] && echo "#FFFACD" && return
+	[ $1 -lt 30 ] && echo "#FFFF00" && return
+	[ $1 -lt 40 ] && echo "#FFD700" && return
+	[ $1 -lt 50 ] && echo "#FFA500" && return
+	[ $1 -lt 60 ] && echo "#FF8C00" && return
+	[ $1 -lt 70 ] && echo "#FF4500" && return
+	[ $1 -lt 80 ] && echo "#DC143C" && return
+	[ $1 -lt 90 ] && echo "#B22222" && return
+	echo "#8B0000" && return
+}
+
+Meter () {
+    [ $1 -eq 0 ]   && echo ⣀ && return
+    [ $1 -le 16 ]  && echo ⣄ && return
+    [ $1 -le 33 ]  && echo ⣤ && return
+    [ $1 -le 50 ]  && echo ⣦ && return
+    [ $1 -le 66 ]  && echo ⣶ && return
+    [ $1 -le 83 ]  && echo ⣷ && return
+    [ $1 -le 100 ] && echo ⣿ && return
+}
+
+printf "📊 %s\n" "$(Meter $memory_percent)"
+echo
+Color $memory_percent
+
+[ -n "$BLOCK_BUTTON" ] &&
+    i3-sensible-terminal -- htop

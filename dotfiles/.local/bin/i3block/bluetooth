@@ -1,0 +1,9 @@
+#!/bin/bash
+
+connected_device="$(bluetoothctl devices Connected | tail -1)"
+if [ -n "$connected_device" ]; then
+	mac_address=$(echo $connected_device | awk '{print $2}')
+	device_name=$(bluetoothctl info $mac_address | sed -n 's/.*Name: \(.*\)/\1/p')
+fi
+
+printf "%s\n" "$device_name"

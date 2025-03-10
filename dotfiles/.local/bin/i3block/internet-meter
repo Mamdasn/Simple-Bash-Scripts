@@ -1,0 +1,30 @@
+#!/bin/bash
+
+get_rx() {
+    rx=$([ -f "${HOME}/.config/net/rx" ] &&
+        cat "${HOME}/.config/net/rx" ||
+        echo 0)
+    echo $rx
+}
+
+get_tx() {
+    tx=$([ -f "${HOME}/.config/net/tx" ] &&
+        cat "${HOME}/.config/net/tx" ||
+        echo 0)
+    echo $tx
+}
+
+format_net_speed () {
+    num=$1
+    [ $num -le 1048576 ] &&
+        echo $((num/1024)) KB && return
+    [ $num -le 10737418240 ] &&
+        echo $((num/1048576)) MB && return
+    [ $num -gt 10737418240 ] &&
+        echo $((num/1073741824)) GB && return
+}
+
+rx=$(format_net_speed $(get_rx))
+tx=$(format_net_speed $(get_tx))
+
+ printf "RX:%04d%s TX:%04d%s\n" $rx $tx

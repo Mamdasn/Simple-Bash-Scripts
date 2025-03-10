@@ -1,0 +1,4 @@
+#!/bin/bash
+
+datetime=$(date '+%Y-%m-%d %H:%M:%S')
+printf "🕰️ %s\n" "$datetime"

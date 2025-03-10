@@ -1,0 +1,32 @@
+#!/bin/bash
+
+lan_device=$(ip link show | sed -n 's/^[0-9]*:\s\(eth[0-9]*\|enp\S*\|enx\S*\):.*\sstate\sUP\s.*/\1/p')
+wifi_device=$(ip link show | sed -n 's/^[0-9]*:\s\(wlan[0-9]*\|wlp\S*\|wlx\S*\):.*\sstate\sUP\s.*/\1/p')
+
+
+#Excellent: >-50 dBm
+#Good: -51 dBm to -60 dBm
+#Fair: -61 dBm to -70 dBm
+#Poor: -71 dBm to -80 dBm
+#Very Poor: <-81 dBm
+
+Emoji () {
+    [ $1 -le -80 ] &&  echo "📵" && return
+    echo "📡" && return
+}
+
+emoji_lan=$([ -n "$lan_device" ] && echo "🌐")
+
+emoji_wifi=$([ -n "$wifi_device" ] &&
+	wifi_strength=$(iw dev $wifi_device link | sed -n 's/\s*signal: \(\S*\).*/\1/p') &&
+	[ -n "$wifi_strength" ] &&
+	Emoji $wifi_strength)
+
+emoji="$emoji_wifi"$([ -n "$emoji_lan" ] && echo " $emoji_lan")
+echo "$emoji"
+
+[ -z "$lan_device$wifi_device" ] &&
+	echo "📵"
+
+[ -n "$BLOCK_BUTTON" ] &&
+    i3-sensible-terminal -- nmtui

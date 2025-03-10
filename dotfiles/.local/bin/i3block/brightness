@@ -1,0 +1,25 @@
+#!/bin/bash
+
+brightness="$(brightnessctl -m | cut -d ',' -f4 | tr -d '%')"
+
+Emoji () {
+    [ $1 -le 33 ] &&  echo "✨" && return
+    [ $1 -le 67 ] &&  echo "🔆" && return
+    echo "☀️" && return
+}
+
+Meter () {
+    [ $1 -eq 0 ] &&   echo ⣀⣀⣀⣀⣀ && return
+    [ $1 -eq 10 ] &&  echo ⣦⣀⣀⣀⣀ && return
+    [ $1 -le 20 ] &&  echo ⣿⣀⣀⣀⣀ && return
+    [ $1 -le 30 ] &&  echo ⣿⣦⣀⣀⣀ && return
+    [ $1 -le 40 ] &&  echo ⣿⣿⣀⣀⣀ && return
+    [ $1 -le 50 ] &&  echo ⣿⣿⣦⣀⣀ && return
+    [ $1 -le 60 ] &&  echo ⣿⣿⣿⣀⣀ && return
+    [ $1 -le 70 ] &&  echo ⣿⣿⣿⣦⣀ && return
+    [ $1 -le 80 ] &&  echo ⣿⣿⣿⣿⣀ && return
+    [ $1 -le 90 ] &&  echo ⣿⣿⣿⣿⣦ && return
+    [ $1 -le 100 ] && echo ⣿⣿⣿⣿⣿ && return
+}
+
+printf "%s %s\n" "$(Emoji $brightness)" "$(Meter $brightness)"

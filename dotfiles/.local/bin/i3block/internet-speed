@@ -1,0 +1,45 @@
+#!/bin/bash
+
+[ ! -d "${HOME}/.config/net" ] &&
+    mkdir -p "${HOME}/.config/net"
+
+lan_device=$(ip link show | sed -n 's/^[0-9]*:\s\(eth[0-9]*\|enp\S*\|enx\S*\):.*\sstate\sUP\s.*/\1/p')
+wifi_device=$(ip link show | sed -n 's/^[0-9]*:\s\(wlan[0-9]*\|wlp\S*\|wlx\S*\):.*\sstate\sUP\s.*/\1/p')
+
+generate_search_term () {
+    echo ^$@ | sed 's/ /|^/g'
+}
+
+active_devices=$(generate_search_term $lan_device $wifi_device)
+
+rxtx_curr=$(cat /proc/net/dev | sed 's/^\s*//g' | sed 's/  */ /g' | grep -E "$active_devices" | cut -d ' ' -f2,10)
+
+rx_curr=$(echo "$rxtx_curr" | cut -d ' ' -f1 | xargs | tr ' ' '+' | bc)
+tx_curr=$(echo "$rxtx_curr" | cut -d ' ' -f2 | xargs | tr ' ' '+' | bc)
+
+[ -f "${HOME}/.config/net/rx" ] &&
+    rx_prev=$(<"${HOME}/.config/net/rx") ||
+    rx_prev=0
+[ -f "${HOME}/.config/net/tx" ] &&
+    tx_prev=$(<"${HOME}/.config/net/tx") ||
+    tx_prev=0
+
+[ ! -d "${HOME}/.config/net" ] &&
+    mkdir -p "${HOME}/.config/net"
+
+[ $rx_prev != $rx_curr ] &&
+    echo $rx_curr > "${HOME}/.config/net/rx"
+[ $tx_prev != $tx_curr ] &&
+    echo $tx_curr > "${HOME}/.config/net/tx"
+
+format_net_speed () {
+    num=$1
+    [ $num -le 1048576 ] &&
+        echo $((num/1024)) KB && return
+    echo $((num/1048576)) MB && return
+}
+
+rx=$(format_net_speed $((rx_curr-rx_prev)))
+tx=$(format_net_speed $((tx_curr-tx_prev)))
+
+ printf "%04d%s🔽 %04d%s🔼\n" $rx $tx

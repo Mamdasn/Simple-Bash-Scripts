@@ -1,0 +1,74 @@
+#!/bin/bash
+
+avg () {
+	echo "($@)/$#" | tr " " "+" | bc
+}
+
+STATUS="$(cat /sys/class/power_supply/BAT0/status 2> /dev/null)"
+AC="$(cat /sys/class/power_supply/AC/online 2> /dev/null)"
+
+CAP0="$(cat /sys/class/power_supply/BAT0/capacity 2> /dev/null)"
+CAP1="$(cat /sys/class/power_supply/BAT1/capacity 2> /dev/null)"
+CAP=$(avg $CAP0 $CAP1)
+
+Color() {
+    [ $1 -lt 10 ] &&  echo "#FF0000" && return
+    [ $1 -lt 20 ] &&  echo "#FF4000" && return
+    [ $1 -lt 30 ] &&  echo "#FF8000" && return
+    [ $1 -lt 40 ] &&  echo "#FFBF00" && return
+    [ $1 -lt 50 ] &&  echo "#FFFF00" && return
+    [ $1 -lt 60 ] &&  echo "#B0FF00" && return
+    [ $1 -lt 70 ] &&  echo "#80FF00" && return
+    [ $1 -lt 80 ] &&  echo "#40FF00" && return
+    [ $1 -lt 90 ] &&  echo "#20FF00" && return
+    [ $1 -le 100 ] && echo "#00FF00" && return
+}
+
+Meter () {
+    [ $1 -lt 5 ]  &&  echo ▒░░░░░░░░░ && return
+    [ $1 -lt 10 ] &&  echo █░░░░░░░░░ && return
+    [ $1 -lt 15 ] &&  echo █▒░░░░░░░░ && return
+    [ $1 -lt 20 ] &&  echo ██░░░░░░░░ && return
+    [ $1 -lt 25 ] &&  echo ██▒░░░░░░░ && return
+    [ $1 -lt 30 ] &&  echo ███░░░░░░░ && return
+    [ $1 -lt 35 ] &&  echo ███▒░░░░░░ && return
+    [ $1 -lt 40 ] &&  echo ████░░░░░░ && return
+    [ $1 -lt 45 ] &&  echo ████▒░░░░░ && return
+    [ $1 -lt 50 ] &&  echo █████░░░░░ && return
+    [ $1 -lt 55 ] &&  echo █████▒░░░░ && return
+    [ $1 -lt 60 ] &&  echo ██████░░░░ && return
+    [ $1 -lt 65 ] &&  echo ██████▒░░░ && return
+    [ $1 -lt 70 ] &&  echo ███████░░░ && return
+    [ $1 -lt 75 ] &&  echo ███████▒░░ && return
+    [ $1 -lt 80 ] &&  echo ████████░░ && return
+    [ $1 -lt 85 ] &&  echo ████████▒░ && return
+    [ $1 -lt 90 ] &&  echo █████████░ && return
+    [ $1 -lt 95 ] &&  echo █████████▒ && return
+    [ $1 -le 100 ] && echo ██████████ && return
+}
+
+Emoji () {
+    status=$1
+    ac=$2
+    cap=$3
+    [ $ac -eq 1 ] && [ $status != "Charging" ] && echo "🔌" && return
+    case "$status" in
+        "Charging")
+            echo "⚡"
+            ;;
+        "Full"|"Not charging"|"Discharging")
+            [ $cap -ge 50 ] &&
+            echo "🔋" ||
+            echo "🪫"
+           ;;
+        "Unknown")
+            echo "⚠️" ;;
+        *)
+            echo "❓" ;;
+    esac
+}
+
+bat_info="$(printf "%3d%s" " $CAP0" "%")"$([ -n "$CAP1" ] && printf "%3d%s" " $CAP1" "%")
+printf "%s %s %s\n" $(Emoji "$STATUS" "$AC" "$CAP0") "$bat_info" "$(Meter $CAP)"
+echo
+Color $CAP0
