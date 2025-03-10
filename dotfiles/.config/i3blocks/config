@@ -1,4 +1,4 @@
-command=$HOME/.local/bin/i3block/$BLOCK_NAME
+command=$HOME/.local/bin/i3blocks/$BLOCK_NAME
 
 separator_block_width=20
 separator=false
