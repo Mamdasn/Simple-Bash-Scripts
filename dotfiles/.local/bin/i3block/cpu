@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cpu="$(top -bn1 | grep "%Cpu" | awk '{print $2 + $4}')"
+cpu="$(top -bn1 | grep "%Cpu" | awk '{print int($2 + $4)}')"
 
 Color () {
 	[ $1 -lt 10 ] &&  echo "#FFFFFF" && return

@@ -3,7 +3,7 @@
 
 running_sink=$(pactl list short sinks | sed -n 's/^[0-9]*\s*\(\S*\)\s*.*RUNNING$/\1/p')
 [ -z "$running_sink" ] && running_sink="@DEFAULT_SINK@"
-volume=$(pactl get-sink-volume $running_sink | head -1 | awk '{print ($5 + $12)/2}')
+volume=$(pactl get-sink-volume $running_sink | head -1 | awk '{print int(($5 + $12)/2)}')
 
 emoji="🔊"
 [ $volume -lt 67 ] && emoji="🔉"
