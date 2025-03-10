@@ -1,7 +1,7 @@
 #!/bin/bash
 
-[ ! -d "${HOME}/.config/net" ] &&
-    mkdir -p "${HOME}/.config/net"
+[ ! -d "${HOME}/.cache/net" ] &&
+    mkdir -p "${HOME}/.cache/net"
 
 lan_device=$(ip link show | sed -n 's/^[0-9]*:\s\(eth[0-9]*\|enp\S*\|enx\S*\):.*\sstate\sUP\s.*/\1/p')
 wifi_device=$(ip link show | sed -n 's/^[0-9]*:\s\(wlan[0-9]*\|wlp\S*\|wlx\S*\):.*\sstate\sUP\s.*/\1/p')
@@ -17,20 +17,20 @@ rxtx_curr=$(cat /proc/net/dev | sed 's/^\s*//g' | sed 's/  */ /g' | grep -E "$ac
 rx_curr=$(echo "$rxtx_curr" | cut -d ' ' -f1 | xargs | tr ' ' '+' | bc)
 tx_curr=$(echo "$rxtx_curr" | cut -d ' ' -f2 | xargs | tr ' ' '+' | bc)
 
-[ -f "${HOME}/.config/net/rx" ] &&
-    rx_prev=$(<"${HOME}/.config/net/rx") ||
+[ -f "${HOME}/.cache/net/rx" ] &&
+    rx_prev=$(<"${HOME}/.cache/net/rx") ||
     rx_prev=0
-[ -f "${HOME}/.config/net/tx" ] &&
-    tx_prev=$(<"${HOME}/.config/net/tx") ||
+[ -f "${HOME}/.cache/net/tx" ] &&
+    tx_prev=$(<"${HOME}/.cache/net/tx") ||
     tx_prev=0
 
-[ ! -d "${HOME}/.config/net" ] &&
-    mkdir -p "${HOME}/.config/net"
+[ ! -d "${HOME}/.cache/net" ] &&
+    mkdir -p "${HOME}/.cache/net"
 
 [ $rx_prev != $rx_curr ] &&
-    echo $rx_curr > "${HOME}/.config/net/rx"
+    echo $rx_curr > "${HOME}/.cache/net/rx"
 [ $tx_prev != $tx_curr ] &&
-    echo $tx_curr > "${HOME}/.config/net/tx"
+    echo $tx_curr > "${HOME}/.cache/net/tx"
 
 format_net_speed () {
     num=$1
