@@ -1,0 +1,10 @@
+#!/bin/bash
+
+emoji_list=$(cat -n $HOME/.cache/data/emoji-data)
+
+selected_line=$(echo "$emoji_list" | rofi -dmenu -theme solarized -p "Choose:" -theme-str 'window {height: 70%; width: 70%;}' | awk '{print $1}')
+
+[ -n "$selected_line" ] &&
+	selected_emoji=$(echo "$emoji_list" | grep -P "^\s*$selected_line\t" | awk '{print $2}') &&
+	{ printf "%s" "$selected_emoji" | xclip -i -selection clipboard;
+	  notify-send "${selected_emoji} copied to clipboard."; }
