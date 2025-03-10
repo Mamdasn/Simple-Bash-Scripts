@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Timeout is in milliseconds
+display_off_timeout=$((10*1000)) # 10 seconds
+suspend_timeout=$((10*60*1000))  # 10 minutes
+
+scrot /tmp/screen.png
+
+
+[[ -f $HOME/.config/locker/lockerscreen.png ]] &&
+	time magick /tmp/screen.png -paint 5 $HOME/.config/locker/lockerscreen.png -gravity center -composite -alpha Set /tmp/screen.png ||
+	time magick /tmp/screen.png -paint 5 /tmp/screen.png
+
+i3lock -e -f -c 000000 -i /tmp/screen.png
+rm /tmp/screen.png
+
+
+# Turn off display if display_off_timeout has elapsed and user is idle
+while [[ $(pgrep -x i3lock) ]]; do
+	[[ $display_off_timeout -lt $(xssstate -i) ]] && xset dpms force off
+	[[ $suspend_timeout -lt $(xssstate -i) ]] && systemctl suspend
+	sleep 5
+done
