@@ -30,7 +30,7 @@ exec --no-startup-id secondary_screen=$(xrandr | sed -n 's/\(^HDMI\S*\)\sconnect
 exec --no-startup-id dex --autostart --environment i3
 
 # Set Wallpaper
-exec_always --no-startup-id xwallpaper --zoom /home/farhad/.config/wallpaper/last-wallpaper.png
+exec_always --no-startup-id xwallpaper --zoom $HOME/.config/wallpaper/last-wallpaper.png
 
 # Set us keyboard layout
 exec --no-startup-id setxkbmap -layout us
@@ -173,7 +173,7 @@ bindsym $mod+s exec --no-startup-id "i3-msg gaps inner current plus 5; i3-msg ga
 bindsym $mod+Control+s exec --no-startup-id "i3-msg gaps outer current set 0; i3-msg gaps inner current set 0"
 
 #lock screen bindings
-bindsym $mod+Shift+q exec --no-startup-id /home/farhad/.local/bin/locker
+bindsym $mod+Shift+q exec --no-startup-id $HOME/.local/bin/locker
 
 # status bar
 #bar {
@@ -193,9 +193,9 @@ bar {
 }
 
 # My scripts
-bindsym $mod+Shift+d exec "/home/farhad/.scripts/spawn-dmenu"
-bindsym $mod+period exec "/home/farhad/.scripts/emojies"
-bindsym $mod+Shift+f exec "/home/farhad/.scripts/filesearch"
+bindsym $mod+Shift+d exec "$HOME/.scripts/spawn-dmenu"
+bindsym $mod+period exec "$HOME/.scripts/emojies"
+bindsym $mod+Shift+f exec "$HOME/.scripts/filesearch"
 bindsym $mod+Shift+w exec "i3-sensible-terminal -e nmtui"
 bindsym $mod+i exec "i3-sensible-terminal -e htop"
 bindsym $mod+Shift+b exec "blueman-manager"
@@ -203,4 +203,4 @@ bindsym $mod+Shift+b exec "blueman-manager"
 # Program bindings
 bindsym $mod+w exec "google-chrome-stable"
 bindsym $mod+n exec "nemo"
-bindsym $mod+Shift+v exec "/home/farhad/.scripts/clipboard-dmenu"
+bindsym $mod+Shift+v exec "$HOME/.scripts/clipboard-dmenu"
