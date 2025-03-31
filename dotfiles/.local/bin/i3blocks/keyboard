@@ -1,0 +1,6 @@
+#!/bin/bash
+
+layout=$(setxkbmap -query | sed -n "s/^layout:\s*\(\S*\)$/\1/p")
+
+[ "$layout" = "us" ] && echo 🇺🇸
+[ "$layout" = "ir" ] && echo 🇮🇷
