@@ -34,7 +34,7 @@ tx_curr=$(echo "$rxtx_curr" | cut -d ' ' -f2 | xargs | tr ' ' '+' | bc)
 
 format_net_speed () {
     num=$1
-    [ $num -le 1048576 ] &&
+    [ $num -le 10485760 ] &&
         echo $((num/1024)) KB && return
     echo $((num/1048576)) MB && return
 }
@@ -42,4 +42,4 @@ format_net_speed () {
 rx=$(format_net_speed $((rx_curr-rx_prev)))
 tx=$(format_net_speed $((tx_curr-tx_prev)))
 
- printf "%04d%s🔽 %04d%s🔼\n" $rx $tx
+printf "%04d%s🔽 %04d%s🔼\n" $rx $tx

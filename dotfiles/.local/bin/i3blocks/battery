@@ -25,26 +25,27 @@ Color() {
 }
 
 Meter () {
-    [ $1 -lt 5 ]  &&  echo ▒░░░░░░░░░ && return
-    [ $1 -lt 10 ] &&  echo █░░░░░░░░░ && return
-    [ $1 -lt 15 ] &&  echo █▒░░░░░░░░ && return
-    [ $1 -lt 20 ] &&  echo ██░░░░░░░░ && return
-    [ $1 -lt 25 ] &&  echo ██▒░░░░░░░ && return
-    [ $1 -lt 30 ] &&  echo ███░░░░░░░ && return
-    [ $1 -lt 35 ] &&  echo ███▒░░░░░░ && return
-    [ $1 -lt 40 ] &&  echo ████░░░░░░ && return
-    [ $1 -lt 45 ] &&  echo ████▒░░░░░ && return
-    [ $1 -lt 50 ] &&  echo █████░░░░░ && return
-    [ $1 -lt 55 ] &&  echo █████▒░░░░ && return
-    [ $1 -lt 60 ] &&  echo ██████░░░░ && return
-    [ $1 -lt 65 ] &&  echo ██████▒░░░ && return
-    [ $1 -lt 70 ] &&  echo ███████░░░ && return
-    [ $1 -lt 75 ] &&  echo ███████▒░░ && return
-    [ $1 -lt 80 ] &&  echo ████████░░ && return
-    [ $1 -lt 85 ] &&  echo ████████▒░ && return
-    [ $1 -lt 90 ] &&  echo █████████░ && return
-    [ $1 -lt 95 ] &&  echo █████████▒ && return
-    [ $1 -le 100 ] && echo ██████████ && return
+    progress=$1
+    len_progress_bar=$2
+    num_fullbar=$((progress * len_progress_bar / 100))
+    num_emptbar=$(($len_progress_bar - $num_fullbar - 1))
+    halfbars="░ ▒"
+    num_halfbars=$(echo "$halfbars " | tr -cd ' ' | wc -c)
+    stat_halfbar=$(((progress % (100/len_progress_bar)) * len_progress_bar*num_halfbars / 100 + 1))
+
+    printf -v progress_fullbar '%*s' "$num_fullbar"
+    progress_fullbar="${progress_fullbar// /█}"
+
+    progress_halfbar=$(echo $halfbars | cut -d ' ' -f$stat_halfbar)
+
+    printf -v progress_emptbar '%*s' "$num_emptbar"
+    progress_emptbar="${progress_emptbar// /░}"
+
+    [ $len_progress_bar -eq $num_fullbar ] &&
+        unset progress_emptbar &&
+        unset progress_halfbar
+
+    printf "%s%s%s\n" "$progress_fullbar" "$progress_halfbar" "$progress_emptbar"
 }
 
 Emoji () {
@@ -69,6 +70,6 @@ Emoji () {
 }
 
 bat_info="$(printf "%3d%s" " $CAP0" "%")"$([ -n "$CAP1" ] && printf "%3d%s" " $CAP1" "%")
-printf "%s %s %s\n" $(Emoji "$STATUS" "$AC" "$CAP0") "$bat_info" "$(Meter $CAP)"
+printf "%s %s %s\n" $(Emoji "$STATUS" "$AC" "$CAP0") "$bat_info" "$(Meter $CAP 7)"
 echo
 Color $CAP0

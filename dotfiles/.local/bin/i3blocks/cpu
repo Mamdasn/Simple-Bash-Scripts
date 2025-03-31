@@ -15,42 +15,28 @@ Color () {
 	[ $1 -le 100 ] && echo "#8B0000" && return
 }
 
-#Meter () {
-#    [ $1 -eq 0 ]  &&  echo ▁▁▁▁▁ && return
-#    [ $1 -eq 10 ] &&  echo ▄▁▁▁▁ && return
-#    [ $1 -le 20 ] &&  echo █▁▁▁▁ && return
-#    [ $1 -le 30 ] &&  echo █▄▁▁▁ && return
-#    [ $1 -le 40 ] &&  echo ██▁▁▁ && return
-#    [ $1 -le 50 ] &&  echo ██▄▁▁ && return
-#    [ $1 -le 60 ] &&  echo ███▁▁ && return
-#    [ $1 -le 70 ] &&  echo ███▄▁ && return
-#    [ $1 -le 80 ] &&  echo ████▁ && return
-#    [ $1 -le 90 ] &&  echo ████▄ && return
-#    [ $1 -le 100 ] && echo █████ && return
-#}
-
 Meter () {
-    [ $1 -eq 0 ]  &&  echo ⣀⣀⣀⣀⣀ && return
-    [ $1 -eq 5 ]  &&  echo ⣄⣀⣀⣀⣀ && return
-    [ $1 -le 10 ] &&  echo ⣤⣀⣀⣀⣀ && return
-    [ $1 -le 15 ] &&  echo ⣶⣀⣀⣀⣀ && return
-    [ $1 -le 20 ] &&  echo ⣿⣀⣀⣀⣀ && return
-    [ $1 -le 25 ] &&  echo ⣿⣄⣀⣀⣀ && return
-    [ $1 -le 30 ] &&  echo ⣿⣦⣀⣀⣀ && return
-    [ $1 -le 35 ] &&  echo ⣿⣶⣀⣀⣀ && return
-    [ $1 -le 40 ] &&  echo ⣿⣿⣀⣀⣀ && return
-    [ $1 -le 45 ] &&  echo ⣿⣿⣄⣀⣀ && return
-    [ $1 -le 50 ] &&  echo ⣿⣿⣦⣀⣀ && return
-    [ $1 -le 55 ] &&  echo ⣿⣿⣶⣀⣀ && return
-    [ $1 -le 60 ] &&  echo ⣿⣿⣿⣀⣀ && return
-    [ $1 -le 65 ] &&  echo ⣿⣿⣿⣄⣀ && return
-    [ $1 -le 70 ] &&  echo ⣿⣿⣿⣦⣀ && return
-    [ $1 -le 75 ] &&  echo ⣿⣿⣿⣶⣀ && return
-    [ $1 -le 80 ] &&  echo ⣿⣿⣿⣿⣀ && return
-    [ $1 -le 85 ] &&  echo ⣿⣿⣿⣿⣄ && return
-    [ $1 -le 90 ] &&  echo ⣿⣿⣿⣿⣦ && return
-    [ $1 -le 95 ] &&  echo ⣿⣿⣿⣿⣶ && return
-    [ $1 -le 100 ] && echo ⣿⣿⣿⣿⣿ && return
+    progress=$1
+    len_progress_bar=5
+    num_fullbar=$((progress * len_progress_bar / 100))
+    num_emptbar=$(($len_progress_bar - $num_fullbar - 1))
+    halfbars="⣀ ⣄ ⣤ ⣦ ⣶ ⣷"
+    num_halfbars=$(echo "$halfbars " | tr -cd ' ' | wc -c)
+    stat_halfbar=$(((progress % (100/len_progress_bar)) * len_progress_bar*num_halfbars / 100 + 1))
+
+    printf -v progress_fullbar '%*s' "$num_fullbar"
+    progress_fullbar="${progress_fullbar// /⣿}"
+
+    progress_halfbar=$(echo $halfbars | cut -d ' ' -f$stat_halfbar)
+
+    printf -v progress_emptbar '%*s' "$num_emptbar"
+    progress_emptbar="${progress_emptbar// /⣀}"
+
+    [ $len_progress_bar -eq $num_fullbar ] &&
+        unset progress_emptbar &&
+        unset progress_halfbar
+
+    printf "%s%s%s\n" "$progress_fullbar" "$progress_halfbar" "$progress_emptbar"
 }
 
 printf "🧠 %s\n" "$(Meter $cpu)"
