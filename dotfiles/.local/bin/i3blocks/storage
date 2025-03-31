@@ -1,0 +1,5 @@
+#!/bin/bash
+
+storage=$(df -Hl | sed -n 's|^\S*\s*\(\S*\)\s*\(\S*\).*\s/$|\2/\1|p')
+
+echo 🗃️ $storage
