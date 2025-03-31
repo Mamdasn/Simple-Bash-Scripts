@@ -17,7 +17,9 @@ rm /tmp/screen.png
 
 # Turn off display if display_off_timeout has elapsed and user is idle
 while [[ $(pgrep -x i3lock) ]]; do
-	[[ $display_off_timeout -lt $(xssstate -i) ]] && xset dpms force off
-	[[ $suspend_timeout -lt $(xssstate -i) ]] && systemctl suspend
+    [[ $display_off_timeout -lt $(xssstate -i) ]] && xset dpms force off
+    [[ $suspend_timeout -lt $(xssstate -i) ]] && [[ -z "$suspended" ]] &&
+        suspended=true && systemctl suspend ||
+            unset suspended
 	sleep 5
 done
