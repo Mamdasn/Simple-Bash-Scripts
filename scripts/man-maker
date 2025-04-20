@@ -1,11 +1,12 @@
- # Define man make function to creat and show a pdf of the manual of a given command
- manmake () {
-     man -t "$@" | ps2pdf - "$TMPDIR/manpage.pdf"
-     [ "$@" ] && open "$TMPDIR/manpage.pdf"
- }
- manfind () {
-     name=$(du -a /usr/share/man | sed 's/^[0-9]*\t//' | grep "\." | cut -d '/' -f 6 | cut -d '.' -f 1 | fzf --height=10);
-     manmake "$name"
- }
+# Define man make function to creat and show a pdf of the manual of a given command
+manmake () {
+    TMPDIR="$(mktemp -d)"
+    man -t "$@" | ps2pdf - "$TMPDIR/manpage.pdf"
+    [ "$@" ] && xdg-open "$TMPDIR/manpage.pdf"
+}
+manfind () {
+    name=$(find /usr/share/man /usr/local/man -type f | sed 's|^/.*/\(\S*\)\.\S*.*|\1|p' | sort | uniq | fzf --height=10);
+    manmake "$name"
+}
 
 manfind
