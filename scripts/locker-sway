@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Timeout is in milliseconds
+display_off_timeout=10 # 10 seconds
+suspend_timeout=$((5*60))  # 5 minutes
+
+swaylock \
+    --daemonize \
+    --image $HOME/.config/wallpaper/last-wallpaper.png \
+    --scaling fill \
+    --clock \
+    --indicator \
+    --indicator-radius 100 \
+    --indicator-thickness 7 \
+    --effect-blur 10x10 \
+    --effect-vignette 0.5:0.5 \
+    --ring-color bb00cc \
+    --key-hl-color 880033 \
+    --line-color 00000000 \
+    --inside-color 00000088 \
+    --separator-color 00000000 \
+    --grace 1 \
+    --fade-in 0.3
+
+swayidle -w \
+    timeout $suspend_timeout "/usr/bin/systemctl suspend" \
+    timeout $display_off_timeout "swaymsg \"output * dpms off\"" \
+    resume 'swaymsg "output * dpms on"' &
+
+while [[ $(pgrep -x swaylock) ]]; do
+        sleep 1
+done
+
+pkill -TERM swayidle
