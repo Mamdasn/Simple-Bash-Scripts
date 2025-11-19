@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Timeout is in milliseconds
+# Timeout is in seconds
 display_off_timeout=10 # 10 seconds
 suspend_timeout=$((5*60))  # 5 minutes
 
